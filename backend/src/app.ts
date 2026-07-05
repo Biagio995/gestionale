@@ -29,7 +29,8 @@ export function createApp(): express.Application {
       await pool.query('SELECT 1');
       res.json({ status: 'ok', db: 'connected' });
     } catch {
-      res.status(503).json({ status: 'degraded', db: 'disconnected' });
+      // 200 anche se il DB non risponde: Belmo usa /health come liveness probe.
+      res.json({ status: 'degraded', db: 'disconnected' });
     }
   });
 

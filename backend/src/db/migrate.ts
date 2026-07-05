@@ -1,10 +1,23 @@
-import { readdirSync, readFileSync } from 'fs';
+import { existsSync, readdirSync, readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { pathToFileURL } from 'url';
 import { fileURLToPath } from 'url';
 import { pool } from './pool.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function resolveMigrationsDir(): string {
+  const candidates = [
+    join(process.cwd(), 'migrations'),
+    join(__dirname, '../../migrations'),
+  ];
+  for (const dir of candidates) {
+    if (existsSync(dir)) {
+      return dir;
+    }
+  }
+  throw new Error(`Migrations directory not found. Tried: ${candidates.join(', ')}`);
+}
 
 export async function runMigrations(options?: { closePool?: boolean }): Promise<void> {
   await pool.query(`
@@ -19,7 +32,7 @@ export async function runMigrations(options?: { closePool?: boolean }): Promise<
   );
   const applied = new Set(appliedResult.rows.map((r) => r.name));
 
-  const migrationsDir = join(__dirname, '../../migrations');
+  const migrationsDir = resolveMigrationsDir();
   const files = readdirSync(migrationsDir)
     .filter((f) => f.endsWith('.sql'))
     .sort();
