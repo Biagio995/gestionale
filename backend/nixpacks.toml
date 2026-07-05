@@ -1,0 +1,4 @@
+# Coolify/Belmo usa Nixpacks: "npm ci" è già eseguito nella fase install.
+# Non ripetere "npm ci" in build (causa EBUSY su node_modules/.cache).
+[phases.build]
+cmds = ["npm run build"]
