@@ -21,6 +21,8 @@
     "team": "Team",
     "supportInbox": "Support inbox",
     "logout": "Logout",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
     "groups": {
       "crm": "CRM",
       "sales": "Sales & invoicing",

@@ -118,7 +118,8 @@ async function assignToMe(): Promise<void> {
 
         <div v-else-if="!admin.tickets.length" class="empty-state">{{ t('tickets.empty') }}</div>
 
-        <table v-else class="data-table">
+        <div v-else class="table-scroll">
+        <table class="data-table">
           <thead>
             <tr>
               <th>#</th>
@@ -156,6 +157,7 @@ async function assignToMe(): Promise<void> {
             </tr>
           </tbody>
         </table>
+        </div>
       </template>
 
       <template v-else-if="isDetail && admin.loading">

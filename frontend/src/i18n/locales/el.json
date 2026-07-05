@@ -21,6 +21,8 @@
     "team": "Ομάδα",
     "supportInbox": "Inbox υποστήριξης",
     "logout": "Έξοδος",
+    "openMenu": "Άνοιγμα μενού",
+    "closeMenu": "Κλείσιμο μενού",
     "groups": {
       "crm": "CRM",
       "sales": "Πωλήσεις & τιμολόγηση",

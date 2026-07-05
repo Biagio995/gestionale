@@ -95,7 +95,8 @@ function statusClass(status: string): string {
         </button>
       </div>
 
-      <table v-else class="data-table">
+      <div v-else class="table-scroll">
+      <table class="data-table">
         <thead>
           <tr>
             <th>#</th>
@@ -120,6 +121,7 @@ function statusClass(status: string): string {
           </tr>
         </tbody>
       </table>
+      </div>
     </main>
   </AppLayout>
 </template>

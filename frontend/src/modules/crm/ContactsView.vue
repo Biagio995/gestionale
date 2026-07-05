@@ -117,7 +117,8 @@ function contactName(c: CrmContact): string {
         {{ t('crm.contacts.empty') }}
       </div>
 
-      <table v-else class="data-table">
+      <div v-else class="table-scroll">
+      <table class="data-table">
         <thead>
           <tr>
             <th>{{ t('crm.contacts.name') }}</th>
@@ -155,6 +156,7 @@ function contactName(c: CrmContact): string {
           </tr>
         </tbody>
       </table>
+      </div>
     </main>
   </AppLayout>
 </template>

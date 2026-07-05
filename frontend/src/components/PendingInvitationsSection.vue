@@ -39,6 +39,7 @@ async function onCancel(invite: PendingInvitation): Promise<void> {
     <h2>{{ t('users.pendingTitle') }}</h2>
     <p class="hint">{{ t('users.pendingHint') }}</p>
 
+    <div class="table-scroll">
     <table class="users-table">
       <thead>
         <tr>
@@ -72,6 +73,7 @@ async function onCancel(invite: PendingInvitation): Promise<void> {
         </tr>
       </tbody>
     </table>
+    </div>
   </section>
 </template>
 

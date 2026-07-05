@@ -809,6 +809,7 @@ function onQuoteLinesUpdate(linesPayload: SalesLinePayload[]): void {
 
         <div class="card">
           <h2>{{ t('sales.lines.title') }}</h2>
+          <div class="table-scroll">
           <table class="data-table">
             <thead>
               <tr>
@@ -843,6 +844,7 @@ function onQuoteLinesUpdate(linesPayload: SalesLinePayload[]): void {
               </tr>
             </tfoot>
           </table>
+          </div>
         </div>
 
         <div v-if="canRecordPayment" class="card payment-card">
@@ -887,6 +889,7 @@ function onQuoteLinesUpdate(linesPayload: SalesLinePayload[]): void {
           </label>
           <div v-if="showPartialPicker" class="partial-lines">
             <h3>{{ t('sales.convert.partialLines') }}</h3>
+            <div class="table-scroll">
             <table class="partial-table">
               <thead>
                 <tr>
@@ -911,6 +914,7 @@ function onQuoteLinesUpdate(linesPayload: SalesLinePayload[]): void {
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
           <div class="form-actions">
             <button type="button" class="btn btn-ghost" @click="showConfirm = false">{{ t('sales.cancel') }}</button>
@@ -1094,4 +1098,18 @@ th {
 }
 .modal { max-width: 420px; width: 100%; padding: 1.25rem; }
 .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0; font-size: 0.9rem; }
+
+@media (max-width: 768px) {
+  .edit-card .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    flex: 1 1 auto;
+  }
+}
 </style>

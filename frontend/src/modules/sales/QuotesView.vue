@@ -261,7 +261,8 @@ function onLinesUpdate(lines: SalesLinePayload[]): void {
       <div v-if="loading" class="empty">{{ t('app.loading') }}</div>
       <div v-else-if="!quotes.length" class="empty">{{ t('sales.quotes.empty') }}</div>
 
-      <table v-else class="data-table">
+      <div v-else class="table-scroll">
+      <table class="data-table">
         <thead>
           <tr>
             <th>{{ t('sales.columns.number') }}</th>
@@ -286,6 +287,7 @@ function onLinesUpdate(lines: SalesLinePayload[]): void {
           </tr>
         </tbody>
       </table>
+      </div>
     </main>
   </AppLayout>
 </template>

@@ -52,7 +52,8 @@ function openEntry(entry: ScadenzarioEntry): void {
       <div v-if="loading" class="empty">{{ t('app.loading') }}</div>
       <div v-else-if="!entries.length" class="empty">{{ t('fiscal.scadenzario.empty') }}</div>
 
-      <table v-else class="data-table">
+      <div v-else class="table-scroll">
+      <table class="data-table">
         <thead>
           <tr>
             <th>{{ t('fiscal.scadenzario.type') }}</th>
@@ -74,6 +75,7 @@ function openEntry(entry: ScadenzarioEntry): void {
           </tr>
         </tbody>
       </table>
+      </div>
     </main>
   </AppLayout>
 </template>

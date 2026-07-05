@@ -24,6 +24,8 @@
     "team": "Collaboratori",
     "supportInbox": "Inbox assistenza",
     "logout": "Esci",
+    "openMenu": "Apri menu",
+    "closeMenu": "Chiudi menu",
     "groups": {
       "crm": "CRM",
       "sales": "Vendite e fatturazione",

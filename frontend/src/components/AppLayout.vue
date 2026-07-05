@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
@@ -141,6 +141,23 @@ const platformNavItems = computed<SidebarNavItem[]>(() => [
   },
 ]);
 
+const sidebarOpen = ref(false);
+
+function toggleSidebar(): void {
+  sidebarOpen.value = !sidebarOpen.value;
+}
+
+function closeSidebar(): void {
+  sidebarOpen.value = false;
+}
+
+watch(
+  () => route.path,
+  () => {
+    sidebarOpen.value = false;
+  },
+);
+
 const operationsNavItems = computed<SidebarNavItem[]>(() => [
   {
     to: '/admin/tickets',
@@ -163,8 +180,15 @@ const operationsNavItems = computed<SidebarNavItem[]>(() => [
 </script>
 
 <template>
-  <div class="app-shell">
-    <aside v-if="auth.isAuthenticated" class="sidebar">
+  <div class="app-shell" :class="{ 'sidebar-open': sidebarOpen }">
+    <div
+      v-if="auth.isAuthenticated && sidebarOpen"
+      class="sidebar-backdrop"
+      aria-hidden="true"
+      @click="closeSidebar"
+    />
+
+    <aside v-if="auth.isAuthenticated" class="sidebar" :class="{ open: sidebarOpen }">
       <div class="sidebar-brand">{{ t('app.title') }}</div>
 
       <nav class="sidebar-nav">
@@ -212,6 +236,19 @@ const operationsNavItems = computed<SidebarNavItem[]>(() => [
     </aside>
 
     <div class="main-area">
+      <header v-if="auth.isAuthenticated" class="mobile-header">
+        <button
+          type="button"
+          class="menu-toggle"
+          :aria-label="sidebarOpen ? t('nav.closeMenu') : t('nav.openMenu')"
+          :aria-expanded="sidebarOpen"
+          @click="toggleSidebar"
+        >
+          <span class="menu-icon" aria-hidden="true" />
+        </button>
+        <div class="mobile-brand">{{ t('app.title') }}</div>
+      </header>
+
       <header v-if="!auth.isAuthenticated" class="top-header">
         <div class="brand">{{ t('app.title') }}</div>
         <LanguageSwitcher />
@@ -323,5 +360,121 @@ const operationsNavItems = computed<SidebarNavItem[]>(() => [
 .brand {
   font-weight: 700;
   font-size: 1.125rem;
+}
+
+.mobile-header {
+  display: none;
+}
+
+.menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.menu-icon {
+  position: relative;
+}
+
+.menu-icon,
+.menu-icon::before,
+.menu-icon::after {
+  display: block;
+  width: 1.125rem;
+  height: 2px;
+  background: var(--text);
+  border-radius: 1px;
+  position: relative;
+}
+
+.menu-icon::before,
+.menu-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+.menu-icon::before {
+  top: -6px;
+}
+
+.menu-icon::after {
+  top: 6px;
+}
+
+.sidebar-open .menu-icon {
+  background: transparent;
+}
+
+.sidebar-open .menu-icon::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.sidebar-open .menu-icon::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+.mobile-brand {
+  font-weight: 700;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 200;
+    width: min(280px, 85vw);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .app-shell.sidebar-open {
+    overflow: hidden;
+  }
 }
 </style>

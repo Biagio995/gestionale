@@ -64,7 +64,8 @@ function formatMoney(value: string, currency: string): string {
       </div>
       <div v-if="loading" class="empty">{{ t('app.loading') }}</div>
       <div v-else-if="!invoices.length" class="empty">{{ t('sales.invoices.empty') }}</div>
-      <table v-else class="data-table">
+      <div v-else class="table-scroll">
+      <table class="data-table">
         <thead>
           <tr>
             <th>{{ t('sales.columns.number') }}</th>
@@ -89,6 +90,7 @@ function formatMoney(value: string, currency: string): string {
           </tr>
         </tbody>
       </table>
+      </div>
     </main>
   </AppLayout>
 </template>

@@ -106,7 +106,8 @@ async function onDelete(item: Item): Promise<void> {
         {{ t('items.empty') }}
       </div>
 
-      <table v-else class="items-table">
+      <div v-else class="table-scroll">
+      <table class="items-table">
         <thead>
           <tr>
             <th>{{ t('items.name') }}</th>
@@ -136,6 +137,7 @@ async function onDelete(item: Item): Promise<void> {
           </tr>
         </tbody>
       </table>
+      </div>
     </main>
   </AppLayout>
 </template>

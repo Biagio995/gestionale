@@ -126,6 +126,7 @@ async function onDeactivate(userId: string, email: string): Promise<void> {
           {{ t('users.activeMembers') }}
         </h2>
 
+        <div class="table-scroll">
         <table class="users-table">
           <thead>
             <tr>
@@ -163,6 +164,7 @@ async function onDeactivate(userId: string, email: string): Promise<void> {
             </tr>
           </tbody>
         </table>
+        </div>
       </template>
     </main>
   </AppLayout>

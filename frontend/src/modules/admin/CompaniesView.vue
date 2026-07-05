@@ -145,7 +145,8 @@ async function onEdit(): Promise<void> {
 
       <div v-if="admin.loading" class="empty-state">{{ t('app.loading') }}</div>
 
-      <table v-else class="data-table">
+      <div v-else class="table-scroll">
+      <table class="data-table">
         <thead>
           <tr>
             <th>{{ t('admin.companyName') }}</th>
@@ -183,6 +184,7 @@ async function onEdit(): Promise<void> {
           </tr>
         </tbody>
       </table>
+      </div>
     </main>
   </AppLayout>
 </template>

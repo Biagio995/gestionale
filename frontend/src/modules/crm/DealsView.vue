@@ -160,7 +160,8 @@ function stageTotal(stage: DealStage): number {
         <button type="button" class="btn btn-ghost toggle-closed" @click="showClosed = !showClosed">
           {{ t('crm.deals.closedSection') }} ({{ closedDeals.length }})
         </button>
-        <table v-if="showClosed" class="data-table">
+        <div v-if="showClosed" class="table-scroll">
+        <table class="data-table">
           <thead>
             <tr>
               <th>{{ t('crm.deals.title') }}</th>
@@ -178,6 +179,7 @@ function stageTotal(stage: DealStage): number {
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </main>
   </AppLayout>

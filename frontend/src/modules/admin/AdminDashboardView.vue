@@ -77,7 +77,8 @@ usePolling(pollDashboard, { intervalMs: 10_000 });
       <div class="card">
         <h2 style="margin-bottom:1rem">{{ t('admin.recentTickets') }}</h2>
         <div v-if="!admin.tickets.length" class="empty-state">{{ t('tickets.empty') }}</div>
-        <table v-else class="data-table">
+        <div v-else class="table-scroll">
+        <table class="data-table">
           <thead>
             <tr>
               <th>#</th>
@@ -106,6 +107,7 @@ usePolling(pollDashboard, { intervalMs: 10_000 });
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </main>
   </AppLayout>

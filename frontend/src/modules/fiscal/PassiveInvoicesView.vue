@@ -181,7 +181,8 @@ async function onImportXml(event: Event): Promise<void> {
       <div v-if="loading" class="empty">{{ t('app.loading') }}</div>
       <div v-else-if="!invoices.length" class="empty">{{ t('fiscal.passive.empty') }}</div>
 
-      <table v-else class="data-table">
+      <div v-else class="table-scroll">
+      <table class="data-table">
         <thead>
           <tr>
             <th>{{ t('fiscal.passive.documentNumber') }}</th>
@@ -222,6 +223,7 @@ async function onImportXml(event: Event): Promise<void> {
           </tr>
         </tbody>
       </table>
+      </div>
     </main>
   </AppLayout>
 </template>

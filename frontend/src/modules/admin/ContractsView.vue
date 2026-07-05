@@ -429,6 +429,7 @@ function formatPeriod(start: string, end: string | null): string {
         </div>
         <div v-if="renewalHistory.length" class="renewal-history">
           <h3>{{ t('admin.contracts.renewalHistory') }}</h3>
+          <div class="table-scroll">
           <table class="data-table compact">
             <thead>
               <tr>
@@ -458,6 +459,7 @@ function formatPeriod(start: string, end: string | null): string {
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
         <p v-else-if="admin.currentContract" class="muted-text">
           {{ t('admin.contracts.noRenewals') }}
@@ -469,7 +471,8 @@ function formatPeriod(start: string, end: string | null): string {
       </form>
 
       <div v-if="admin.loading" class="empty-state">{{ t('app.loading') }}</div>
-      <table v-else class="data-table">
+      <div v-else class="table-scroll">
+      <table class="data-table">
         <thead>
           <tr>
             <th>{{ t('admin.company') }}</th>
@@ -519,6 +522,7 @@ function formatPeriod(start: string, end: string | null): string {
           </tr>
         </tbody>
       </table>
+      </div>
     </main>
   </AppLayout>
 </template>
