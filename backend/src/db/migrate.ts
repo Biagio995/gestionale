@@ -1,11 +1,12 @@
 import { readdirSync, readFileSync } from 'fs';
 import { dirname, join } from 'path';
+import { pathToFileURL } from 'url';
 import { fileURLToPath } from 'url';
 import { pool } from './pool.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-async function migrate(): Promise<void> {
+export async function runMigrations(options?: { closePool?: boolean }): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       name TEXT PRIMARY KEY,
@@ -47,10 +48,19 @@ async function migrate(): Promise<void> {
   }
 
   console.log('All migrations completed successfully');
-  await pool.end();
+
+  if (options?.closePool ?? false) {
+    await pool.end();
+  }
 }
 
-migrate().catch((err: unknown) => {
-  console.error('Migration failed:', err);
-  process.exit(1);
-});
+const isCli =
+  process.argv[1] !== undefined &&
+  pathToFileURL(process.argv[1]).href === import.meta.url;
+
+if (isCli) {
+  runMigrations({ closePool: true }).catch((err: unknown) => {
+    console.error('Migration failed:', err);
+    process.exit(1);
+  });
+}

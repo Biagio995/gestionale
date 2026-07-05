@@ -20,6 +20,10 @@ export function createApp(): express.Application {
   app.use(cors({ origin: env.corsOrigin, credentials: true }));
   app.use(express.json());
 
+  app.get('/', (_req, res) => {
+    res.json({ status: 'ok', service: 'gestionale-api' });
+  });
+
   app.get('/health', async (_req, res) => {
     try {
       await pool.query('SELECT 1');
