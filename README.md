@@ -74,6 +74,54 @@ Apri **http://localhost:5173** e accedi o registrati.
 
 ---
 
+## Deploy in produzione (Netlify + Render)
+
+Netlify ospita **solo il frontend**. L’errore *«Errore di rete»* in login significa che il browser non riesce a contattare l’API backend.
+
+### Architettura
+
+| Componente | Dove | URL esempio |
+|------------|------|-------------|
+| Frontend Vue | Netlify | `https://gestionalecrm.netlify.app` |
+| API + PostgreSQL | Render (o altro) | `https://gestionale-api.onrender.com` |
+
+### 1. Deploy backend su Render
+
+1. Crea un account su [render.com](https://render.com) e collega il repository GitHub
+2. **New → Blueprint** e seleziona il repo (usa il file `render.yaml` incluso)
+3. Attendi che database e API siano **Live**
+4. Copia l’URL del servizio web (es. `https://gestionale-api.onrender.com`)
+
+Verifica che risponda: apri `https://TUO-API.onrender.com/health` → deve restituire `{"status":"ok"}`.
+
+### 2. Configura Netlify
+
+In **Site configuration → Environment variables** aggiungi:
+
+| Variabile | Valore |
+|-----------|--------|
+| `VITE_API_URL` | URL del backend Render (senza slash finale) |
+
+Poi **Deploys → Trigger deploy → Clear cache and deploy site** (obbligatorio: `VITE_*` viene letta al build).
+
+### 3. Verifica CORS
+
+Su Render, il file `render.yaml` imposta già:
+
+- `CORS_ORIGIN=https://gestionalecrm.netlify.app`
+- `APP_URL=https://gestionalecrm.netlify.app`
+
+Se usi un dominio Netlify diverso, aggiorna queste variabili nel dashboard Render.
+
+### Account demo in produzione
+
+Dopo il primo deploy, la migration `017` crea automaticamente:
+
+- Email: `demo@example.com`
+- Password: `password123`
+
+---
+
 ## Cosa puoi fare
 
 ### CRM
@@ -232,6 +280,9 @@ Sì. In conversione ordine→DDT o DDT→fattura puoi indicare le **quantità pa
 
 **Perché la fattura è in bozza?**  
 Per permetterti di controllare i dati prima dell’emissione definitiva. Solo dopo **Emetti fattura** puoi inviare allo SDI.
+
+**Perché vedo «Errore di rete» su Netlify?**  
+Il frontend è online ma l’API no, oppure manca `VITE_API_URL` su Netlify. Segui la sezione [Deploy in produzione](#deploy-in-produzione-netlify--render).
 
 **Ho dimenticato la password?**  
 Usa **Password dimenticata** dalla schermata di login (richiede SMTP configurato in produzione).

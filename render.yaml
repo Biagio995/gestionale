@@ -1,0 +1,35 @@
+# Deploy backend + PostgreSQL su Render (https://render.com)
+# Dopo il deploy, imposta su Netlify: VITE_API_URL = URL del servizio API
+
+databases:
+  - name: gestionale-db
+    plan: free
+    databaseName: gestionale
+    user: gestionale
+
+services:
+  - type: web
+    name: gestionale-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gestionale-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://gestionalecrm.netlify.app
+      - key: APP_URL
+        value: https://gestionalecrm.netlify.app
+      - key: SDI_MODE
+        value: simulated
+      - key: MAIL_ENABLED
+        value: false
