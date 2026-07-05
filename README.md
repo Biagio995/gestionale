@@ -1,318 +1,243 @@
-# Gestionale SaaS Multi-Tenant - Product Backlog (User Stories)
+# Gestionale — CRM e fatturazione per la tua azienda
 
-Questo documento descrive il backlog prodotto in forma di user stories dettagliate per un gestionale SaaS multi-tenant.
+Gestionale è un software **multi-azienda (SaaS)** pensato per piccole e medie imprese italiane. Ti permette di gestire **contatti, trattative, vendite e fatturazione** in un unico ambiente, con supporto alla **fattura elettronica** (SDI simulato in ambiente demo).
 
-## Visione Prodotto
-
-Costruire un gestionale cloud semplice, sicuro e scalabile per PMI, con:
-- isolamento dati rigoroso tra tenant;
-- sicurezza by default;
-- esperienza utente chiara e multilingua;
-- base architetturale pulita per evolvere verso moduli amministrativi e operativi.
-
-## Ruoli
-
-- **Guest**: utente non autenticato.
-- **Member**: utente autenticato del tenant.
-- **Admin**: utente con privilegi amministrativi nel tenant.
-- **System**: comportamento applicativo/infrastrutturale.
-
-## Definizioni trasversali (valgono per tutte le storie)
-
-- Ogni entita' applicativa deve includere `tenant_id`.
-- Nessuna query puo' ignorare il filtro tenant.
-- Ogni endpoint autenticato deve validare identita', ruolo e appartenenza tenant.
-- UI senza stringhe hardcoded: tutto passa da layer i18n.
-- Errori sensibili non devono esporre dettagli interni.
+L’interfaccia è disponibile in **italiano**, **inglese** e **greco**.
 
 ---
 
-## EPIC 1 - Authentication & Session Management
+## A chi è rivolto
 
-### US1 - Registrazione con creazione tenant
-**Come** nuovo utente  
-**voglio** registrarmi inserendo email, password e nome azienda  
-**cosi' da** creare il mio spazio gestionale isolato
-
-**Acceptance Criteria**
-- Dati minimi richiesti: email valida, password conforme policy, `company_name`.
-- Email univoca nel sistema.
-- Alla conferma vengono creati:
-  - nuovo tenant;
-  - utente con ruolo `ADMIN` associato al tenant.
-- Login automatico post-registrazione con token valido.
-- Redirect su dashboard tenant appena creato.
-- Audit log evento `tenant_created` e `user_registered`.
-
-**Edge Cases**
-- Email gia' registrata: errore esplicito e non ambiguo.
-- Password debole: messaggio con requisiti mancanti.
-- Errore transazionale: nessuna creazione parziale (tenant senza admin o viceversa).
+- Aziende che vogliono un flusso ordinato: **Preventivo → Ordine → DDT → Fattura**
+- Team commerciali che usano un **CRM** leggero (contatti, trattative, calendario)
+- Amministratori che devono configurare **dati fiscali**, **scadenzario** e **fatture passive**
+- Chi cerca una soluzione **self-hosted** o in prova locale prima di adottarla
 
 ---
 
-### US2 - Login utente registrato
-**Come** utente registrato  
-**voglio** effettuare login con credenziali  
-**cosi' da** accedere al mio gestionale
+## Prova subito (account demo)
 
-**Acceptance Criteria**
-- Login con email/password validi.
-- Emissione JWT (o session token) con `user_id`, `tenant_id`, `role`, `exp`.
-- Persistenza sessione lato client in modo sicuro.
-- Redirect verso dashboard.
-- Tentativi falliti tracciati in audit log.
+Se l’ambiente è già configurato, puoi accedere con:
 
-**Edge Cases**
-- Credenziali errate: risposta uniforme, senza leak su utente esistente.
-- Account disabilitato: login negato con messaggio dedicato.
-- Token malformato: sessione rigettata e reset stato client.
+| Campo    | Valore              |
+|----------|---------------------|
+| Email    | `demo@example.com`  |
+| Password | `password123`       |
+
+L’account demo include già un **profilo fiscale** precompilato (Demo Srl) e dati di esempio per esplorare vendite e fatturazione.
 
 ---
 
-### US3 - Accesso guest e protezione route private
-**Come** guest  
-**voglio** vedere uno stato pubblico chiaro  
-**cosi' da** capire che devo autenticarmi
+## Primo accesso: registra la tua azienda
 
-**Acceptance Criteria**
-- Route private non accessibili ai guest.
-- UI guest con call-to-action: "Accedi" / "Registrati".
-- Nessun dato tenant visibile in stato guest.
-- Redirect automatico a login se si prova ad aprire route protette.
+1. Apri l’applicazione nel browser (di default: `http://localhost:5173`)
+2. Clicca **Registra azienda**
+3. Inserisci email, password e **nome azienda**
+4. Dopo l’accesso, segui la **guida introduttiva** in dashboard
+
+Ogni azienda registrata ha un **ambiente isolato**: i tuoi dati non sono visibili ad altre aziende sulla piattaforma.
 
 ---
 
-### US4 - Gestione sessione invalida
-**Come** sistema  
-**voglio** invalidare sessioni incoerenti/scadute  
-**cosi' da** evitare accessi non autorizzati
+## Avvio locale (installazione rapida)
 
-**Acceptance Criteria**
-- Token scaduti o invalidi causano logout immediato.
-- Rimozione credenziali lato client.
-- Redirect a login con notifica sessione scaduta.
-- Endpoint sensibili rispondono `401/403` coerentemente.
+### Requisiti
 
----
+- [Node.js](https://nodejs.org/) 20 o superiore
+- [Docker](https://www.docker.com/) (per PostgreSQL)
+- npm
 
-## EPIC 2 - Multi-Tenant Isolation
+### Passaggi
 
-### US5 - Isolamento dati per tenant
-**Come** utente autenticato  
-**voglio** vedere solo dati del mio tenant  
-**cosi' da** proteggere informazioni aziendali
+```bash
+# 1. Avvia il database
+docker compose up -d
 
-**Acceptance Criteria**
-- Ogni query lettura/scrittura filtra per `tenant_id`.
-- Impossibile ottenere risorse di tenant diverso.
-- Test automatici su accessi cross-tenant bloccati.
+# 2. Backend
+cd backend
+cp .env.example .env
+npm install
+npm run migrate
+npm run seed:demo    # opzionale: dati demo fiscali
+npm run dev
 
----
+# 3. Frontend (in un altro terminale)
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
 
-### US6 - Enforcement middleware tenant-aware
-**Come** backend  
-**voglio** applicare tenant scoping centralizzato  
-**cosi' da** ridurre bug di sicurezza applicativa
+Apri **http://localhost:5173** e accedi o registrati.
 
-**Acceptance Criteria**
-- Middleware obbligatorio risolve `tenant_id` da token/sessione.
-- Repository/service layer non espongono metodi "globali" non scoped.
-- Endpoint senza contesto tenant falliscono in modo sicuro.
+> **Nota:** in sviluppo le email (inviti, reset password) vengono scritte in console, non inviate realmente, a meno che non configuri SMTP in `backend/.env`.
 
 ---
 
-### US7 - Prevenzione IDOR
-**Come** sistema  
-**voglio** bloccare accesso diretto a record per ID non autorizzati  
-**cosi' da** prevenire data leak
+## Cosa puoi fare
 
-**Acceptance Criteria**
-- Ogni fetch by ID valida ownership tenant.
-- In caso di mismatch tenant: `404` o `403` coerente con policy.
-- Copertura test per tentativi manuali su ID di altri tenant.
+### CRM
 
----
+| Area | Descrizione |
+|------|-------------|
+| **Contatti** | Anagrafica clienti con P.IVA, codice fiscale, SDI, PEC e indirizzo |
+| **Trattative** | Pipeline commerciale (lead → chiusura) con valore e fasi |
+| **Calendario** | Appuntamenti e attività collegati a contatti e trattative |
+| **Dashboard** | Panoramica attività commerciale e indicatori vendite |
 
-## EPIC 3 - Core Domain CRUD (Items)
+### Vendite e documenti
 
-### US8 - Creazione item
-**Come** admin  
-**voglio** creare un item  
-**cosi' da** registrare dati aziendali
+Il cuore del gestionale è il **flusso documentale**:
 
-**Acceptance Criteria**
-- Campi obbligatori validati server-side.
-- Item creato con `tenant_id` del chiamante.
-- Audit log evento `item_created`.
-- Risposta API con payload coerente e localizzabile lato UI.
+```
+Preventivo  →  Ordine  →  DDT  →  Fattura
+```
 
----
+| Documento | A cosa serve |
+|-----------|--------------|
+| **Preventivo** | Proposta commerciale al cliente |
+| **Ordine** | Conferma dell’ordine (da preventivo accettato) |
+| **DDT** | Documento di trasporto / consegna merci |
+| **Fattura** | Documento fiscale (prima in bozza, poi emessa) |
 
-### US9 - Lista item tenant-scoped
-**Come** member  
-**voglio** vedere la lista dei miei item  
-**cosi' da** consultare rapidamente i dati
+**Funzionalità utili:**
 
-**Acceptance Criteria**
-- Lista filtrata per tenant.
-- Ordinamento base (es. data creazione desc).
-- Paginazione supportata.
-- Empty state guidato se non ci sono elementi.
+- **Pipeline vendite** — vista d’insieme di preventivi, ordini, DDT e fatture
+- **Catena documenti** — collegamento tra i documenti dello stesso cliente
+- **Conversione guidata** — da preventivo puoi andare direttamente a fattura, con opzione **Salta DDT** (ideale per servizi)
+- **Evasione parziale** — DDT e fatture su quantità residue (consegne o fatturazioni a rate)
+- **PDF ed email** — scarica o invia i documenti al cliente
+- **Catalogo articoli** — prodotti con prezzo e, opzionalmente, **gestione magazzino**
 
----
+### Fatturazione elettronica
 
-### US10 - Modifica item
-**Come** admin  
-**voglio** aggiornare un item esistente  
-**cosi' da** mantenere i dati aggiornati
+| Area | Descrizione |
+|------|-------------|
+| **Profilo fiscale** | Dati azienda (P.IVA, indirizzo, SDI, PEC, giorni pagamento predefiniti) |
+| **Fatture attive** | Emissione, modifica in bozza, emissione definitiva, invio SDI |
+| **Fatture passive** | Registrazione e import XML fatture ricevute |
+| **Scadenzario** | Scadenze pagamento e stato incassi |
+| **Validazione P.IVA** | Controllo formale (e opzionale VIES se abilitato) |
 
-**Acceptance Criteria**
-- Aggiornamento consentito solo su item del tenant corrente.
-- Validazioni coerenti come in creazione.
-- Tracciamento `updated_at` e audit evento `item_updated`.
-- Conflitti di update gestiti (se policy optimistic locking attiva).
+> **Importante:** in ambiente locale l’invio allo **SDI è simulato**. Non sostituisce un gestionale certificato in produzione finché non colleghi i servizi reali dell’Agenzia delle Entrate.
 
 ---
 
-### US11 - Eliminazione item
-**Come** admin  
-**voglio** eliminare un item  
-**cosi' da** mantenere pulizia e qualita' dati
+## Flusso consigliato (passo per passo)
 
-**Acceptance Criteria**
-- Delete solo su risorse del tenant.
-- Conferma utente prima dell'azione distruttiva.
-- Soft delete consigliata per recupero operativo.
-- Audit evento `item_deleted`.
+### 1. Configura il profilo fiscale
 
----
+**Vendite → Impostazioni fiscali** (solo amministratori)
 
-## EPIC 4 - User & Access Management
+Compila ragione sociale, P.IVA, indirizzo, codice SDI o PEC e i giorni di pagamento predefiniti. Senza questi dati, PDF e fattura elettronica non sono completi.
 
-### US12 - Cambio lingua utente
-**Come** utente  
-**voglio** cambiare lingua dell'interfaccia  
-**cosi' da** usare il sistema nella mia lingua
+### 2. Crea contatti e articoli
 
-**Acceptance Criteria**
-- Selettore lingua visibile in area utente.
-- Preferenza salvata e persistente tra sessioni.
-- Aggiornamento UI immediato senza refresh completo (se possibile).
+- Aggiungi i **clienti** in CRM → Contatti (con dati fiscali se devi fatturare)
+- Opzionale: crea **articoli** in Elementi (prezzo, giacenza se gestisci magazzino)
 
----
+### 3. Crea un preventivo
 
-### US13 - Invito utenti nel tenant
-**Come** admin  
-**voglio** invitare nuovi utenti via email  
-**cosi' da** collaborare nel mio tenant
+**Vendite → Preventivi → Nuovo preventivo**
 
-**Acceptance Criteria**
-- Invito con email e ruolo iniziale.
-- Token invito con scadenza.
-- Accettazione invito crea/associa utente al tenant corretto.
-- Inviti duplicati o scaduti gestiti con feedback chiaro.
+- Seleziona un contatto CRM o inserisci i dati manualmente
+- Aggiungi le righe (descrizione, quantità, prezzo, IVA)
+- Salva e, se serve, invia PDF/email al cliente
 
----
+### 4. Converti in ordine
 
-### US14 - Gestione ruoli e permessi
-**Come** admin  
-**voglio** assegnare ruoli agli utenti  
-**cosi' da** controllare gli accessi
+Dal dettaglio preventivo: **Converti in ordine**. Il preventivo passa allo stato *Convertito*.
 
-**Acceptance Criteria**
-- Ruoli minimi: `ADMIN`, `MEMBER` (estensibile).
-- Enforcement permessi lato API, non solo UI.
-- Admin non puo' auto-rimuovere ultimo privilegio amministrativo se unico admin.
-- Audit evento `role_changed`.
+### 5. Genera il DDT (o salta)
+
+Dal dettaglio ordine:
+
+- **Genera DDT** — per consegna merci (anche parziale, scegliendo le quantità)
+- **Fattura (senza DDT)** — per prestazioni di servizio senza documento di trasporto
+
+Se tracci il magazzino, la giacenza degli articoli viene aggiornata alla creazione del DDT.
+
+### 6. Emetti la fattura
+
+La conversione crea una fattura in **bozza (DRAFT)**:
+
+1. Controlla e modifica righe e dati cliente se necessario
+2. Clicca **Emetti fattura** per renderla definitiva
+3. Scarica PDF/XML o usa **Invia SDI** (simulato in demo)
+
+### 7. Monitora pagamenti
+
+Usa lo **Scadenzario** e, dal dettaglio fattura, registra gli incassi parziali o totali.
 
 ---
 
-## EPIC 5 - Internationalization (i18n)
+## Ruoli utente
 
-### US15 - UI multilingua completa
-**Come** utente  
-**voglio** trovare l'interfaccia tradotta  
-**cosi' da** usare il gestionale in modo naturale
+| Ruolo | Cosa può fare |
+|-------|----------------|
+| **Utente** | CRM, vendite, consultazione documenti, ticket assistenza |
+| **Admin azienda** | Tutto quanto sopra + utenti, profilo fiscale, emissione fatture, SDI |
+| **Super Admin** | Pannello piattaforma: gestione aziende clienti, ticket, contratti (non usa il CRM aziendale) |
 
-**Acceptance Criteria**
-- Tutte le stringhe UI passano da dizionari i18n.
-- Supporto iniziale minimo: `it` e `en`.
-- Messaggi di errore e validazione localizzati.
+Gli amministratori possono **invitare colleghi** via email dalla sezione Utenti.
 
 ---
 
-### US16 - Fallback lingua robusto
-**Come** sistema  
-**voglio** usare fallback automatico su chiavi mancanti  
-**cosi' da** evitare UI rotta o testi vuoti
+## Lingue
 
-**Acceptance Criteria**
-- Se chiave mancante nella lingua attiva, fallback su lingua di default.
-- Logging tecnico per chiavi mancanti.
-- Nessuna chiave i18n mostrata grezza in UI (es. `dashboard.title`).
+Dal menu utente puoi cambiare lingua:
+
+- Italiano
+- English
+- Ελληνικά
 
 ---
 
-## EPIC 6 - UX Empty States & Onboarding
+## Assistenza
 
-### US17 - Empty state guest
-**Come** guest  
-**voglio** una schermata vuota ma guidata  
-**cosi' da** capire il primo passo da fare
-
-**Acceptance Criteria**
-- Messaggio sintetico sul valore del prodotto.
-- CTA primaria `Accedi` e secondaria `Registrati`.
-- Nessun elemento interno del tenant mostrato.
+Ogni azienda può aprire **ticket di assistenza** dalla sezione dedicata. I ticket sono gestiti dal team piattaforma (Super Admin) separatamente dal CRM aziendale.
 
 ---
 
-### US18 - Empty state tenant nuovo
-**Come** utente di tenant appena creato  
-**voglio** una guida iniziale con azioni consigliate  
-**cosi' da** completare rapidamente onboarding
+## Limitazioni attuali (da conoscere)
 
-**Acceptance Criteria**
-- Checklist iniziale (es. crea primo item, invita collega, imposta lingua).
-- Stato checklist persistente.
-- Link rapidi alle azioni principali.
+- **SDI simulato** — l’invio fiscale non raggiunge l’Agenzia delle Entrate in ambiente demo
+- **Nessun OAuth AdE** — integrazione produzione SDI non inclusa in questa versione
+- **Email** — in sviluppo le notifiche vanno in log; in produzione serve SMTP configurato
+- **Multi-azienda** — ogni registrazione crea un tenant isolato; non è previsto condividere dati tra aziende
 
 ---
 
-## Requisiti Non Funzionali
+## Struttura del progetto (per curiosi)
 
-- **Sicurezza**: OWASP baseline, protezione da IDOR, gestione sicura token/sessioni.
-- **Performance**: tempi risposta API CRUD entro SLO definito.
-- **Osservabilita'**: log strutturati, audit trail su azioni critiche.
-- **Qualita' codice**: TypeScript strict, layering pulito, test su casi critici.
-- **Scalabilita'**: schema dati e servizi pronti a crescita tenant/utenti.
+```
+Gestionale/
+├── backend/     API REST (Node.js, Express, PostgreSQL)
+├── frontend/    Interfaccia web (Vue 3, TypeScript)
+├── docker-compose.yml
+└── README.md    ← questa guida
+```
 
-## Definition of Done (DoD) per ogni User Story
+Per sviluppatori: test backend con `npm test` nella cartella `backend`, build frontend con `npm run build` in `frontend`.
 
-- Acceptance criteria coperti da test.
-- Nessuna regressione su isolamento tenant.
-- Messaggi utente localizzati.
-- Audit/log aggiunti per eventi sensibili.
-- Documentazione API/UI aggiornata.
+---
 
-## Regole operative per sviluppo con AI (Cursor)
+## Domande frequenti
 
-### DEVE
-- Comportarsi come Senior SaaS Engineer.
-- Rispettare sempre l'architettura multi-tenant.
-- Usare TypeScript in strict mode.
-- Mantenere separazione chiara tra UI, dominio e infrastruttura.
+**Devo creare sempre il DDT?**  
+No. Per servizi puoi usare **Fattura (senza DDT)** dall’ordine o spuntare *Salta il DDT* nel wizard da preventivo.
 
-### VIETATO
-- Bypassare autenticazione/autorizzazione.
-- Eseguire query senza `tenant_id` (salvo flussi di bootstrap espliciti e controllati).
-- Inserire stringhe UI hardcoded.
-- Spostare logica di business critica nel frontend.
+**Posso fatturare solo una parte dell’ordine?**  
+Sì. In conversione ordine→DDT o DDT→fattura puoi indicare le **quantità parziali** per riga.
 
-## Principi finali
+**Perché la fattura è in bozza?**  
+Per permetterti di controllare i dati prima dell’emissione definitiva. Solo dopo **Emetti fattura** puoi inviare allo SDI.
 
-- **MULTI-TENANT FIRST**
-- **SECURITY BY DEFAULT**
-- **I18N ALWAYS**
-- **SIMPLE MVP, SOLID FOUNDATION**
+**Ho dimenticato la password?**  
+Usa **Password dimenticata** dalla schermata di login (richiede SMTP configurato in produzione).
+
+---
+
+## Licenza e supporto
+
+Software in evoluzione. Per segnalazioni o richieste, apri un ticket dall’interno dell’applicazione o contatta chi gestisce l’installazione.
