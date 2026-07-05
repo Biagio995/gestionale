@@ -101,14 +101,54 @@ Account demo creato dalla migration `017`: `demo@example.com` / `password123`.
 
 ---
 
-### Opzione B — Netlify (frontend) + Docker (backend)
+### Opzione B — Netlify live (frontend) + backend Docker
 
-Se vuoi tenere **Netlify** per il sito statico ma **senza Render**:
+Netlify serve **solo il frontend**. Il login funziona solo se l'API è **raggiungibile da Internet** e Netlify sa dove inoltrarla.
 
-1. Deploy del backend con Docker su un VPS (solo servizio `api` + `postgres` da `docker-compose.prod.yml`, oppure `docker compose up api postgres`)
-2. Espone l'API su un dominio pubblico (es. `https://api.tuodominio.it`)
-3. Su Netlify imposta `VITE_API_URL=https://api.tuodominio.it` e ridistribuisci
-4. Nel `.env` del backend imposta `CORS_ORIGIN=https://gestionalecrm.netlify.app`
+#### Passo 1 — Avvia backend in locale (o su VPS)
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+```
+
+L'API è esposta su **http://localhost:3010** (verifica: `http://localhost:3010/health`).
+
+#### Passo 2 — Rendi l'API pubblica (scegli una)
+
+**A) Cloudflare Tunnel (gratis, dal tuo PC)**
+
+```bash
+# Installa cloudflared, poi:
+cloudflared tunnel --url http://localhost:3010
+```
+
+Copia l'URL generato (es. `https://abc123.trycloudflare.com`).
+
+**B) VPS con Docker** — deploy `docker-compose.prod.yml` su un server con IP pubblico e usa `https://api.tuodominio.it`.
+
+#### Passo 3 — Variabili su Netlify
+
+In **Site configuration → Environment variables**:
+
+| Variabile | Valore |
+|-----------|--------|
+| `NETLIFY_API_PROXY_URL` | URL pubblico dell'API (es. `https://abc123.trycloudflare.com`) |
+| `VITE_API_URL` | *(lascia vuoto — non impostare)* |
+
+Poi **Deploys → Trigger deploy → Clear cache and deploy site**.
+
+> Il build genera automaticamente i redirect proxy (`build:netlify`). Il browser chiama `gestionalecrm.netlify.app/auth/...` e Netlify inoltra al tuo backend.
+
+#### Passo 4 — CORS (solo se usi `VITE_API_URL` diretta)
+
+Con `NETLIFY_API_PROXY_URL` **non serve** configurare CORS per il browser. Se invece imposti `VITE_API_URL` con URL API diretto, nel `.env.prod` del backend:
+
+```
+CORS_ORIGIN=https://gestionalecrm.netlify.app
+APP_URL=https://gestionalecrm.netlify.app
+```
+
+**Nota:** con Cloudflare Tunnel il PC deve restare acceso. Per produzione stabile usa un VPS.
 
 ---
 
@@ -116,7 +156,7 @@ Se vuoi tenere **Netlify** per il sito statico ma **senza Render**:
 
 Documentata in `render.yaml` se preferisci un PaaS gestito per API e database. Vedi la sezione precedente nel README o il file `render.yaml`.
 
-**Errore «Errore di rete» su Netlify:** il frontend non raggiunge l'API. Serve un backend online e `VITE_API_URL` configurata (opzione B o C).
+**Errore «Errore di rete» su Netlify:** manca `NETLIFY_API_PROXY_URL` o il backend non è online. Segui [Opzione B](#opzione-b--netlify-live-frontend--backend-docker).
 
 ---
 

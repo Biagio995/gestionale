@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
+    "build:netlify": "vue-tsc --noEmit && vite build && node scripts/write-netlify-redirects.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
