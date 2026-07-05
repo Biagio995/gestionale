@@ -87,7 +87,7 @@ cp .env.prod.example .env.prod
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 ```
 
-Apri **http://localhost:8080** (o la porta impostata in `HTTP_PORT`).
+Apri **http://localhost:8090** (o la porta impostata in `HTTP_PORT`).
 
 | Servizio | Ruolo |
 |----------|--------|

@@ -4,7 +4,7 @@
 #   cp .env.prod.example .env.prod
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 #
-# App: http://localhost (porta 8080 di default)
+# App: http://localhost (porta 8090 di default; 8080 spesso occupata)
 
 services:
   postgres:
@@ -15,7 +15,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gestionale}
       POSTGRES_DB: ${POSTGRES_DB:-gestionale}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_prod:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-gestionale}']
       interval: 5s
@@ -30,8 +30,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-gestionale}:${POSTGRES_PASSWORD:-gestionale}@postgres:5432/${POSTGRES_DB:-gestionale}
       JWT_SECRET: ${JWT_SECRET:?Imposta JWT_SECRET in .env.prod}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
-      CORS_ORIGIN: ${APP_URL:-http://localhost:8080}
-      APP_URL: ${APP_URL:-http://localhost:8080}
+      CORS_ORIGIN: ${APP_URL:-http://localhost:8090}
+      APP_URL: ${APP_URL:-http://localhost:8090}
       SDI_MODE: simulated
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
     depends_on:
@@ -45,9 +45,9 @@ services:
         VITE_API_URL: ''
     restart: unless-stopped
     ports:
-      - '${HTTP_PORT:-8080}:80'
+      - '${HTTP_PORT:-8090}:80'
     depends_on:
       - api
 
 volumes:
-  postgres_data:
+  postgres_data_prod:
