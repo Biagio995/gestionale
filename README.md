@@ -74,51 +74,49 @@ Apri **http://localhost:5173** e accedi o registrati.
 
 ---
 
-## Deploy in produzione (Netlify + Render)
+## Deploy in produzione
 
-Netlify ospita **solo il frontend**. L’errore *«Errore di rete»* in login significa che il browser non riesce a contattare l’API backend.
+### Opzione A — Docker (consigliata, senza Render)
 
-### Architettura
+Tutto su **un solo server** (VPS, PC sempre acceso, ecc.): PostgreSQL + API + frontend nginx. Nessun Render, nessun Netlify obbligatorio.
 
-| Componente | Dove | URL esempio |
-|------------|------|-------------|
-| Frontend Vue | Netlify | `https://gestionalecrm.netlify.app` |
-| API + PostgreSQL | Render (o altro) | `https://gestionale-api.onrender.com` |
+```bash
+cp .env.prod.example .env.prod
+# Modifica JWT_SECRET, POSTGRES_PASSWORD e APP_URL in .env.prod
 
-### 1. Deploy backend su Render
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+```
 
-1. Crea un account su [render.com](https://render.com) e collega il repository GitHub
-2. **New → Blueprint** e seleziona il repo (usa il file `render.yaml` incluso)
-3. Attendi che database e API siano **Live**
-4. Copia l’URL del servizio web (es. `https://gestionale-api.onrender.com`)
+Apri **http://localhost:8080** (o la porta impostata in `HTTP_PORT`).
 
-Verifica che risponda: apri `https://TUO-API.onrender.com/health` → deve restituire `{"status":"ok"}`.
+| Servizio | Ruolo |
+|----------|--------|
+| `postgres` | Database |
+| `api` | Backend Node (migrations automatiche all'avvio) |
+| `web` | Frontend Vue + nginx (proxy API sullo stesso dominio) |
 
-### 2. Configura Netlify
+**Su un VPS pubblico:** imposta `APP_URL=https://tuodominio.it`, esponi la porta 80/443 (con Caddy o nginx + Let's Encrypt davanti al container).
 
-In **Site configuration → Environment variables** aggiungi:
+Account demo creato dalla migration `017`: `demo@example.com` / `password123`.
 
-| Variabile | Valore |
-|-----------|--------|
-| `VITE_API_URL` | URL del backend Render (senza slash finale) |
+---
 
-Poi **Deploys → Trigger deploy → Clear cache and deploy site** (obbligatorio: `VITE_*` viene letta al build).
+### Opzione B — Netlify (frontend) + Docker (backend)
 
-### 3. Verifica CORS
+Se vuoi tenere **Netlify** per il sito statico ma **senza Render**:
 
-Su Render, il file `render.yaml` imposta già:
+1. Deploy del backend con Docker su un VPS (solo servizio `api` + `postgres` da `docker-compose.prod.yml`, oppure `docker compose up api postgres`)
+2. Espone l'API su un dominio pubblico (es. `https://api.tuodominio.it`)
+3. Su Netlify imposta `VITE_API_URL=https://api.tuodominio.it` e ridistribuisci
+4. Nel `.env` del backend imposta `CORS_ORIGIN=https://gestionalecrm.netlify.app`
 
-- `CORS_ORIGIN=https://gestionalecrm.netlify.app`
-- `APP_URL=https://gestionalecrm.netlify.app`
+---
 
-Se usi un dominio Netlify diverso, aggiorna queste variabili nel dashboard Render.
+### Opzione C — Netlify + Render (alternativa)
 
-### Account demo in produzione
+Documentata in `render.yaml` se preferisci un PaaS gestito per API e database. Vedi la sezione precedente nel README o il file `render.yaml`.
 
-Dopo il primo deploy, la migration `017` crea automaticamente:
-
-- Email: `demo@example.com`
-- Password: `password123`
+**Errore «Errore di rete» su Netlify:** il frontend non raggiunge l'API. Serve un backend online e `VITE_API_URL` configurata (opzione B o C).
 
 ---
 
@@ -282,7 +280,7 @@ Sì. In conversione ordine→DDT o DDT→fattura puoi indicare le **quantità pa
 Per permetterti di controllare i dati prima dell’emissione definitiva. Solo dopo **Emetti fattura** puoi inviare allo SDI.
 
 **Perché vedo «Errore di rete» su Netlify?**  
-Il frontend è online ma l’API no, oppure manca `VITE_API_URL` su Netlify. Segui la sezione [Deploy in produzione](#deploy-in-produzione-netlify--render).
+Il frontend è online ma l'API no, oppure manca `VITE_API_URL`. Usa [Docker sul VPS](#opzione-a--docker-consigliata-senza-render) o [Netlify + Docker](#opzione-b--netlify-frontend--docker-backend).
 
 **Ho dimenticato la password?**  
 Usa **Password dimenticata** dalla schermata di login (richiede SMTP configurato in produzione).
