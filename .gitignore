@@ -3,4 +3,4 @@ node_modules/
 dist/
 .env
 *.log
-cursorrules.md
+cursorrules
